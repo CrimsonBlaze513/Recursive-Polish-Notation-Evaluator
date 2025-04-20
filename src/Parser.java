@@ -1,11 +1,10 @@
-package Recursion.parser;
-
 import java.util.HashMap;
 
 public class Parser {
     private Tokenizer tokenizer;
     private Token currentToken;
     private HashMap<String, Double> variables;
+    private int tracker = 0;
 
     public Parser(Tokenizer tokenizer, HashMap<String, Double> variables) {
         this.tokenizer = tokenizer;
@@ -15,10 +14,10 @@ public class Parser {
     }
 
     public double parse() {
-        return parseAssignments();
+        return parseExpr();
     }
 
-    private double parseAssignments() {
+    /*private double parseAssignments() {
         //Handle assignments like x = 5 + 2, or pass to expression parser
         if (currentToken.type == TokenType.IDENTIFIER) {
             String name = currentToken.text;
@@ -35,7 +34,7 @@ public class Parser {
             }
         }
         return parseExpr();
-    }
+    }*/
 
     // Consume a token if it matches what we expect
     private void eat(TokenType expected) {
@@ -48,7 +47,7 @@ public class Parser {
         }
     }
 
-    private double parseFactor() {
+    /*private double parseFactor() {
         if (currentToken.type == TokenType.MINUS) {
             eat(TokenType.MINUS);
             return -parseFactor();
@@ -78,9 +77,9 @@ public class Parser {
             // Oy vey
             throw new RuntimeException("Unexpected token: " + currentToken.type);
         }
-    }
+    }*/
 
-    private double parseTerm() {
+    /*private double parseTerm() {
         // Parse the first factor
         double result = parsePower();
 
@@ -100,29 +99,69 @@ public class Parser {
                 result /= rhs;
         }
         return result;
-    }
+    }*/
 
     public double parseExpr() {
-        // Start by parsing the first term
-        double result = parseTerm();
-
-        // While the next token is + or -, continue parsing additional terms
-        while (currentToken.type == TokenType.PLUS || currentToken.type == TokenType.MINUS) {
-            // Store the operator
+        if (tracker != 2 && (currentToken.type == TokenType.PLUS || currentToken.type == TokenType.MINUS
+                || currentToken.type == TokenType.MUL || currentToken.type == TokenType.DIV)) {
+            // Get the operator
             TokenType op = currentToken.type;
-            eat(op); // Consume the operator
-            double rhs = parseTerm(); // Parse the next term
+            eat(op); // consume the operator
+            tracker++;
+            double lhs = parseExpr(); // parse first operand
+            double rhs = parseExpr(); // parse second operand
+            return apply(op, lhs, rhs); // apply the operator
+        } else if ((currentToken.type == TokenType.NUMBER) || (currentToken.type == TokenType.MINUS)) {
 
-            // Apply the operator to the running result
-            if (op == TokenType.PLUS)
-                result += rhs;
-            else
-                result -= rhs;
+            if (currentToken.type == TokenType.MINUS) {
+                eat(TokenType.MINUS);
+
+                if (currentToken.type == TokenType.NUMBER) {
+                    double value = -Double.parseDouble(currentToken.text);
+                    eat(TokenType.NUMBER);
+                    return value;
+                } else {
+                    throw new RuntimeException("Expected number after unary minus");
+                }
+            } else if (currentToken.type == TokenType.NUMBER) {
+                double value = Double.parseDouble(currentToken.text);
+                eat(TokenType.NUMBER);
+                return value;
+            } else {
+                throw new RuntimeException("Expected number after unary minus");
+            }
+
+        } else if (currentToken.type == TokenType.IDENTIFIER) {
+            String name = currentToken.text;
+            eat(TokenType.IDENTIFIER);
+            if (!variables.containsKey(name)) {
+                throw new RuntimeException("Undefined variable: " + name);
+            }
+            return variables.get(name);
+        } else {
+            throw new RuntimeException("Unexpected token: " + currentToken);
         }
-        return result;
     }
 
-    public double parsePower() {
+    public double apply(TokenType op, double left, double right) {
+        switch (op) {
+            case PLUS:
+                return left + right;
+            case MINUS:
+                return left - right;
+            case MUL:
+                return left * right;
+            case DIV:
+                if (right == 0) {
+                    throw new ArithmeticException("Division by zero");
+                }
+                return left / right;
+            default:
+                throw new IllegalArgumentException("Unknown operator: " + op);
+        }
+    }
+
+    /*public double parsePower() {
         // Power -> factor (^ power)? right-associative
         double base = parseFactor();
         if (currentToken.type == TokenType.CARET) {
@@ -131,5 +170,5 @@ public class Parser {
             return Math.pow(base, exponent);
         }
         return base;
-    }
+    }*/
 }

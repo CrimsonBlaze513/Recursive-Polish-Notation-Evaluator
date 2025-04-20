@@ -1,5 +1,3 @@
-package Recursion.parser;
-
 public class Token {
     TokenType type;
     String text;

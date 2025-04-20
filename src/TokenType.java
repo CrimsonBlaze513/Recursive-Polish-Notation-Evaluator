@@ -1,5 +1,3 @@
-package Recursion.parser;
-
 public enum TokenType {
     NUMBER, CARET, IDENTIFIER, EQUALS, PLUS, MINUS, MUL, DIV, LPAREN, RPAREN, EOF
 }

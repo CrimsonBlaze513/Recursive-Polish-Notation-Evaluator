@@ -1,5 +1,3 @@
-package Recursion.parser;
-
 import java.util.HashMap;
 import java.util.Scanner;
 
@@ -8,6 +6,8 @@ public class ExpressionParser {
         Scanner scanner = new Scanner(System.in);
         HashMap<String, Double> globalVariables = new HashMap<>();
         System.out.print("Enter an arithmetic expression or type 'exit' to quit: ");
+
+
 
         // REPL loop
         while (true) {
